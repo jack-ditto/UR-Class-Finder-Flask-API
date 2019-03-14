@@ -39,8 +39,8 @@ class Class(db.Model):
 class RequestDatabase(Resource):
 
     def post(self):
-        try:
 
+        try:
             # Set up argument parser
             parser = reqparse.RequestParser()
             parser.add_argument('class_name', type=str)
