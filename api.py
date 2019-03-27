@@ -61,7 +61,8 @@ class RequestDatabase(Resource):
             _location = args['location']
             _department = args['department']
 
-            if not all(x is None for x in args.values()):
+            # Check if all params are either none or empty
+            if not all(x is None or not x for x in args.values()):
                 # Build query based on all parameters
                 res = Class.query
                 if _class_name is not None:
@@ -79,7 +80,7 @@ class RequestDatabase(Resource):
                 if _department:
                     _department = _department.split(",")
                     res = res.filter(Class.department.in_(_department))
-                    
+
                 # Return classes that meet query
                 return [
                     {
