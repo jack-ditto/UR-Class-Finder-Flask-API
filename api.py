@@ -1,74 +1,28 @@
 from flask import Flask
 from flask_restful import Resource, Api, reqparse
-from flask_sqlalchemy import SQLAlchemy
 import os
-from flask_migrate import Migrate
+# from flask_migrate import Migrate
 from flask_cors import CORS
+import pandas as pd
+from pandas import ExcelFile
+from data_helper import *
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 app = Flask(__name__)
 api = Api(app)
 CORS(app)
 
-# Set up the initial database
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'app.db')
-db = SQLAlchemy(app)
-
-# Used to update database structure if / when needed
-migrate = Migrate(app, db)
-
-# Model for classes in database
-class Class(db.Model):
-
-    # Primary key
-    id = db.Column(db.Integer, primary_key=True)
-    # Campus / school
-    campus = db.Column(db.String(4), unique=False, nullable=True)
-    # CRN
-    crn = db.Column(db.String(5), unique=False, nullable=True)
-    # Subject, such as ECON
-    department = db.Column(db.String(80), unique=False, nullable=True)
-    # Coutse number, like 101
-    course_number = db.Column(db.Integer, unique=False, nullable=True)
-    # Section number
-    section = db.Column(db.String(4), unique=False, nullable=True)
-    # Title of class
-    class_name = db.Column(db.String(80), unique=False, nullable=False)
-    # Attribue, like SSIR
-    attr = db.Column(db.String(80), unique=False, nullable=True)
-    # Number of credits
-    num_credits = db.Column(db.Float(20), unique=False, nullable=True)
-    # Days of the week
-    days = db.Column(db.String(7), unique=False, nullable=True)
-    # Start time
-    start_time = db.Column(db.String(80), unique=False, nullable=True)
-    # End time
-    end_time = db.Column(db.String(80), unique=False, nullable=True)
-    # Building
-    building = db.Column(db.String(10), unique=False, nullable=True)
-    # Room number
-    room = db.Column(db.String(10), unique=False, nullable=True)
-    # Code (no idea what this is)
-    code = db.Column(db.String(10), unique=False, nullable=True)
-    # Professor name
-    professor = db.Column(db.String(80), unique=False, nullable=True)
-    # Additional notes about classes
-    notes = db.Column(db.String(500), unique=False, nullable=True)
-    # Time for lab, null if no lab
-    lab_start = db.Column(db.String(80), unique=False, nullable=True)
-    lab_end = db.Column(db.String(80), unique=False, nullable=True)
-    lab_days = db.Column(db.String(7), unique=False, nullable=True)
-    
-    # String representation for testing
-    def __repr__(self):
-        return f'''<Name {self.class_name}>'''
+# Excel file to read from
+df = pd.read_excel("courses_3.31.xlsx", sheet_name="Sheet1")
 
 # Endpoint for query-ing database
 class RequestDatabase(Resource):
 
     def post(self):
 
+        # Uncomment this statement to keep running on error
         try:
+
             # Set up argument parser
             parser = reqparse.RequestParser()
             parser.add_argument('class_name', type=str)
@@ -96,44 +50,45 @@ class RequestDatabase(Resource):
             _course_number = args['course_number']
             _days = args['days']
 
-            # These are the attributes to check for contains
-            class_attributes = [_campus, _crn, _course_number,
-            _class_name, _days, _start_time, _end_time, _professor]
+            # List of indexes of classes for filtering
+            classes = []
 
-            # Check if all params are either none or empty
-            if not all(x is None or not x for x in args.values()):
-                # Build query based on all parameters
-                res = Class.query
-                for a in class_attributes:
-                    if a is not None:
-                        res = res.filter(Class.class_name.contains(a))
-                # Department is dropdown, so args are sent comma separated
-                if _department:
-                    _department = _department.split(",")
-                    res = res.filter(Class.department.in_(_department))
+            classes = filter_name_by_contains(df, _class_name, "TITLE", classes)
+            classes = filter_name_by_contains(df, _crn, "CRN", classes)
+            classes = filter_name_by_contains(df, _professor, "LASTNAME", classes)
+            classes = filter_list_by_contains(df, _department, "SUBJ", classes)
 
-                # Return classes that meet query
-                print([x.crn for x in res.all()[:2]])
-                return [
+            # Build the response
+            return_data = []
+            for class_index in classes:
+
+                professor = "Not Announced"
+                if str(df['LASTNAME'][class_index]) != "nan":
+                    professor = str(df['LASTNAME'][class_index]),
+
+                building = "NA"
+                if str(df['BLDG'][class_index]) != "nan":
+                    building = str(df['BLDG'][class_index])
+
+                return_data.append(
                     {
-                        'class_name': c.class_name,
-                        'crn': c.crn,
-                        'professor': c.professor,
-                        'start_time': c.start_time,
-                        'end_time': c.end_time,
-                        'building': c.building,
-                        'department': c.department
+                        'class_name': str(df['TITLE'][class_index]).title(),
+                                             'crn': str(df['CRN'][class_index]),
+                        'professor': professor,
+                        'start_time': formatTime(df['BEGIN'][class_index]),
+                        'end_time': formatTime(df['END'][class_index]),
+                        'building': building,
+                        'department': str(df['SUBJ'][class_index])
                     }
+                )
 
-                    for c in res.all()
-                ]
+            return return_data
 
-            else:
-                return []
-
+        # Uncomment this statement to keep running on error
         except Exception as e:
             print(str(e))
             return {'error': str(e)}
+
 
 # Add endpoint to app
 api.add_resource(RequestDatabase, '/RequestDatabase')
