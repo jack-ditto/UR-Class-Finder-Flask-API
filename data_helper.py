@@ -67,7 +67,8 @@ def filter_list_by_contains(data_file, value_list, column_name, classes_index_li
 
     # Value sent from website is null
     if not value_list or not value_list.split():
-        return False
+        return classes_index_list
+        
     value_list = value_list.split()
 
     # There are no classes in the current session yet
