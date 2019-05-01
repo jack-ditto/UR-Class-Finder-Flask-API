@@ -68,7 +68,7 @@ def filter_list_by_contains(data_file, value_list, column_name, classes_index_li
     # Value sent from website is null
     if not value_list or not value_list.split():
         return classes_index_list
-        
+
     value_list = value_list.split()
 
     # There are no classes in the current session yet
@@ -106,3 +106,14 @@ def check_value(data_file, column_name, index, missing_replacement):
         return converted_title
 
     return missing_replacement
+
+'''
+Build the week code for a given class index
+'''
+def build_week_code(index, data_file):
+
+    week_code = ""
+    for day in "MTWRF":
+        if str(data_file[day][index]) != "nan":
+            week_code += str(data_file[day][index])
+    return week_code
