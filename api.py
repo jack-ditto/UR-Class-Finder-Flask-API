@@ -61,11 +61,13 @@ class RequestDatabase(Resource):
             return_data = []
             for class_index in classes:
 
-                professor = "Not Announced"
+                # Set professor to blank string if not specified
+                professor = ""
                 if str(df['LASTNAME'][class_index]) != "nan":
                     professor = str(df['LASTNAME'][class_index]),
 
-                building = "NA"
+                # Set building to blank string if not specified
+                building = ""
                 if str(df['BLDG'][class_index]) != "nan":
                     building = str(df['BLDG'][class_index])
 
