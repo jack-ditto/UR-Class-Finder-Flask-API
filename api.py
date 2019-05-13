@@ -1,7 +1,6 @@
 from flask import Flask
 from flask_restful import Resource, Api, reqparse
 import os
-# from flask_migrate import Migrate
 from flask_cors import CORS
 import pandas as pd
 from pandas import ExcelFile
