@@ -20,7 +20,7 @@ df['TITLE'] = df['TITLE'].apply(lambda t: t.lower())
 df['LASTNAME'] = df['LASTNAME'].apply(lambda t: t.lower())
 
 # Endpoint for query-ing database
-class RequestDatabase(Resource):
+class SearchClasses(Resource):
 
     def post(self):
 
@@ -121,7 +121,8 @@ class SameClassSearch(Resource):
 
 
 # Add endpoint to app
-api.add_resource(RequestDatabase, '/RequestDatabase')
+api.add_resource(SearchClasses, '/SearchClasses')
+api.add_resource(SameClassSearch, '/SameClassSearch')
 
 if __name__ == "__main__":
     app.run(debug=True)
