@@ -13,6 +13,11 @@ CORS(app)
 
 # Excel file to read from
 df = pd.read_excel("courses_3.31.xlsx", sheet_name="Sheet1")
+# Fill blank spots with empty string
+df.fillna('',inplace=True)
+# Make title and professor lowercase
+df['TITLE'] = df['TITLE'].apply(lambda t: t.lower())
+df['LASTNAME'] = df['LASTNAME'].apply(lambda t: t.lower())
 
 # Endpoint for query-ing database
 class RequestDatabase(Resource):
@@ -38,52 +43,76 @@ class RequestDatabase(Resource):
             args = parser.parse_args()
 
             # Assign variables from arguments
-            _class_name = args['class_name']
+            _class_name = args['class_name'].lower()
             _crn = args['crn']
-            _professor = args['professor']
+            _professor = args['professor'].lower()
             _start_time = args['start_time']
             _end_time = args['end_time']
             _building = args['building']
-            _department = args['department']
+            _department = args['department'] if args['department'] else []
             _campus = args['campus']
             _course_number = args['course_number']
             _days = args['days']
 
             # List of indexes of classes for filtering
-            classes = []
 
-            classes = filter_name_by_contains(df, _class_name, "TITLE", classes)
-            classes = filter_name_by_contains(df, _crn, "CRN", classes)
-            classes = filter_name_by_contains(df, _professor, "LASTNAME", classes)
-            classes = filter_list_by_contains(df, _department, "SUBJ", classes)
+            classes = df
+            classes = classes[(classes['TITLE'].str.contains(_class_name)) | (not _class_name)]
+            classes = classes[(classes['CRN'] == (int(_crn) if _crn else _crn)) | (not _crn)]
+            classes = classes[(classes['LASTNAME'].str.contains(_professor)) | (not _professor)]
+            classes = classes[(classes['SUBJ'].isin(_department)) | (len(_department) == 0)]
 
             # Build the response
             return_data = []
-            for class_index in classes:
-
-                # Set professor to blank string if not specified
-                professor = ""
-                if str(df['LASTNAME'][class_index]) != "nan":
-                    professor = str(df['LASTNAME'][class_index]),
-
-                # Set building to blank string if not specified
-                building = ""
-                if str(df['BLDG'][class_index]) != "nan":
-                    building = str(df['BLDG'][class_index])
+            for index, row in classes.iterrows():
 
                 return_data.append(
                     {
-                        'class_name': str(df['TITLE'][class_index]).title(),
-                                             'crn': str(df['CRN'][class_index]),
-                        'professor': professor,
-                        'start_time': formatTime(df['BEGIN'][class_index]),
-                        'end_time': formatTime(df['END'][class_index]),
-                        'building': building,
-                        'department': str(df['SUBJ'][class_index])
+                        'class_name': row['TITLE'].title(),
+                        'crn': row['CRN'],
+                        'professor': row['LASTNAME'].title(),
+                        'start_time': formatTime(row['BEGIN']),
+                        'end_time': formatTime(row['END']),
+                        'building': row['BLDG'],
+                        'department': row['SUBJ'],
+                        'week_code': row['M'] + row['T'] + row['W'] + row['R'] + row['F']
                     }
                 )
 
             return return_data
+
+class SameClassSearch(Resource):
+
+    def post(self):
+
+        # Set up argument parser
+        parser = reqparse.RequestParser()
+        parser.add_argument('classes_names', action='append')
+        args = parser.parse_args()
+        _classes_names = list(set(args['classes_names'])) if args['classes_names'] else []
+
+        classes = pd.DataFrame()
+        for class_name in _classes_names:
+            classes = pd.concat([classes, df[df['TITLE'] == class_name.lower()]])
+
+        # Build the response
+        return_data = []
+        for index, row in classes.iterrows():
+
+            return_data.append(
+                {
+                    'class_name': row['TITLE'].title(),
+                    'crn': row['CRN'],
+                    'professor': row['LASTNAME'].title(),
+                    'start_time': formatTime(row['BEGIN']),
+                    'end_time': formatTime(row['END']),
+                    'building': row['BLDG'],
+                    'department': row['SUBJ'],
+                    'week_code': row['M'] + row['T'] + row['W'] + row['R'] + row['F']
+                }
+            )
+
+        return return_data
 
         # Uncomment this statement to keep running on error
         except Exception as e:
