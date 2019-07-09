@@ -40,9 +40,9 @@ class SearchClasses(Resource):
             args = parser.parse_args()
 
             # Assign variables from arguments
-            _class_name = args['class_name'].lower() if args['class_name'] else None
+            _class_name = args['class_name'].lower() if args['class_name'] else ""
             _crn = args['crn']
-            _professor = args['professor'].lower() if args['professor'] else None
+            _professor = args['professor'].lower() if args['professor'] else ""
             _start_time = args['start_time']
             _end_time = args['end_time']
             _building = args['building']
