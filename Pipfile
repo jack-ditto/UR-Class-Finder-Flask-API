@@ -12,6 +12,7 @@ flask-cors = "*"
 pandas = "*"
 xlrd = "*"
 requests = "*"
+uwsgi = "*"
 
 [requires]
 python_version = "3.7"
