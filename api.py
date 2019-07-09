@@ -116,4 +116,4 @@ api.add_resource(SearchClasses, '/SearchClasses')
 api.add_resource(SameClassSearch, '/SameClassSearch')
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=False)
