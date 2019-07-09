@@ -24,9 +24,6 @@ class SearchClasses(Resource):
 
     def post(self):
 
-        # Uncomment this statement to keep running on error
-        try:
-
             # Set up argument parser
             parser = reqparse.RequestParser()
             parser.add_argument('class_name', type=str)
@@ -113,12 +110,6 @@ class SameClassSearch(Resource):
             )
 
         return return_data
-
-        # Uncomment this statement to keep running on error
-        except Exception as e:
-            print(str(e))
-            return {'error': str(e)}
-
 
 # Add endpoint to app
 api.add_resource(SearchClasses, '/SearchClasses')
