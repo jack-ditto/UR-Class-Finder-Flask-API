@@ -32,7 +32,7 @@ class SearchClasses(Resource):
             parser.add_argument('start_time', type=str)
             parser.add_argument('end_time', type=str)
             parser.add_argument('building', type=str)
-            parser.add_argument('department', type=str)
+            parser.add_argument('department', action='append')
             parser.add_argument('campus', type=str)
             parser.add_argument('course_number', type=str)
             parser.add_argument('days', type=str)
