@@ -108,12 +108,18 @@ class SameClassSearch(Resource):
                     'week_code': row['M'] + row['T'] + row['W'] + row['R'] + row['F']
                 }
             )
-
         return return_data
+
+class DateLastUpdated(Resource):
+
+    def post(self):
+
+        return "3/31/19"
 
 # Add endpoint to app
 api.add_resource(SearchClasses, '/SearchClasses')
 api.add_resource(SameClassSearch, '/SameClassSearch')
+api.add_resource(DateLastUpdated, '/dateLastUpdated')
 
 if __name__ == "__main__":
     app.run(debug=False)
