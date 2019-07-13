@@ -72,7 +72,8 @@ class SearchClasses(Resource):
                         'end_time': formatTime(row['END']),
                         'building': row['BLDG'],
                         'department': row['SUBJ'],
-                        'week_code': row['M'] + row['T'] + row['W'] + row['R'] + row['F']
+                        'week_code': row['M'] + row['T'] + row['W'] + row['R'] + row['F'],
+                        'level': row['CRSE']
                     }
                 )
 
@@ -105,7 +106,8 @@ class SameClassSearch(Resource):
                     'end_time': formatTime(row['END']),
                     'building': row['BLDG'],
                     'department': row['SUBJ'],
-                    'week_code': row['M'] + row['T'] + row['W'] + row['R'] + row['F']
+                    'week_code': row['M'] + row['T'] + row['W'] + row['R'] + row['F'],
+                    'level': row['CRSE']
                 }
             )
         return return_data
