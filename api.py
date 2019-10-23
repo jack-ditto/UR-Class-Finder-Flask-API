@@ -122,7 +122,7 @@ class DateLastUpdated(Resource):
 
     def post(self):
 
-        return "3/31/19"
+        return "10/22/19"
 
 # Add endpoint to app
 api.add_resource(SearchClasses, '/SearchClasses')
